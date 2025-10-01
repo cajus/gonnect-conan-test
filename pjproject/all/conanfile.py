@@ -47,7 +47,8 @@ class PjSIPConan(ConanFile):
     languages = "C"
 
     def requirements(self):
-        self.requires("openssl/[>=3 <4]")
+        if self.settings.os != "Macos":
+            self.requires("openssl/[>=3 <4]")
 
         if self.options.with_uuid:
             self.requires("libuuid/1.0.3")
@@ -128,7 +129,6 @@ class PjSIPConan(ConanFile):
 
         if self.settings.os == "Windows":
             self.buildWindows()
-            return
         else:
             self.buildAutotools()
 

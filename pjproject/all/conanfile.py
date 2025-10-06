@@ -9,6 +9,7 @@ from conan.tools.apple import fix_apple_shared_install_name
 from conan.tools.env import VirtualRunEnv
 from conan.tools.gnu import AutotoolsToolchain, AutotoolsDeps, Autotools
 from conan.errors import ConanInvalidConfiguration
+from conan.tools.microsoft import MSBuild
 
 required_conan_version = ">=2"
 
@@ -46,7 +47,8 @@ class PjSIPConan(ConanFile):
     languages = "C"
 
     def requirements(self):
-        self.requires("openssl/[>=3 <4]")
+        if self.settings.os != "Macos":
+            self.requires("openssl/[>=3 <4]")
 
         if self.options.with_uuid:
             self.requires("libuuid/1.0.3")
@@ -63,6 +65,9 @@ class PjSIPConan(ConanFile):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
 
     def generate(self):
+        if self.settings.os == "Windows":
+           return
+
         if not cross_building(self):
             # Expose LD_LIBRARY_PATH when there are shared dependencies,
             # as configure tries to run a test executable (when not cross-building)
@@ -91,16 +96,51 @@ class PjSIPConan(ConanFile):
         deps = AutotoolsDeps(self)
         deps.generate()
 
-    def build(self):
-        apply_conandata_patches(self)
-        shutil.copytree(self.source_folder, self.build_folder, dirs_exist_ok=True)
+    def buildWindows(self):
+        if self.options.shared:
+            raise ConanInvalidConfiguration("Shared libraries not supported for Windows")
 
+        shutil.copy(os.path.join(self.build_folder, 'pjlib/include/pj/config_site_sample.h'),
+                    os.path.join(self.build_folder, 'pjlib/include/pj/config_site.h'))
+        path = os.path.join(self.build_folder, "pjproject-vs14.sln")
+
+        # Upgrade sln to current build system
+        self.output.info('converting visual studio project if necessary')
+        self.run('devenv %s /upgrade' % path, ignore_errors=True, quiet=True)
+
+        # build pjsua
+        msbuild = MSBuild(self)
+        if self.settings.build_type == 'Release':
+            msbuild.build_type = 'Release-Dynamic'
+        elif self.settings.build_type == 'Debug':
+            msbuild.build_type = 'Debug-Dynamic'
+        else:
+            raise ConanInvalidConfiguration("Unsupported build_type %s" % self.settings.build_type)
+        msbuild.build(path, targets=["pjsua"])
+
+    def buildAutotools(self):
         autotools = Autotools(self)
         autotools.configure()
         autotools.make()
 
+    def build(self):
+        apply_conandata_patches(self)
+        shutil.copytree(self.source_folder, self.build_folder, dirs_exist_ok=True)
+
+        if self.settings.os == "Windows":
+            self.buildWindows()
+        else:
+            self.buildAutotools()
+
     def package(self):
         copy(self, "COPYING", src=self.source_folder, dst=os.path.join(self.package_folder, "licenses"))
+
+        if self.settings.os == "Windows":            
+            for lib in ['pjlib', 'pjsip', 'pjlib-util', 'pjmedia', 'pjnath']:
+                copy(self, "*.h", os.path.join(self.build_folder, "%s/include" % lib), os.path.join(self.package_folder, "include"))
+                copy(self, "*.lib", os.path.join(self.build_folder, "%s/lib" % lib), os.path.join(self.package_folder, "lib"))
+            return
+
         autotools = Autotools(self)
         autotools.install()
 

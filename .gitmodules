@@ -1,0 +1,3 @@
+[submodule "gonnect"]
+	path = gonnect
+	url = https://github.com/gonicus/gonnect.git

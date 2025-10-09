@@ -36,7 +36,7 @@ class HidAPIConan(ConanFile):
         cmake_layout(self)
 
     def requirements(self):
-        self.settings.os != "Windows":
+        if self.settings.os != "Windows":
             self.requires("libusb/1.0.26")
         if self.settings.os == "Linux":
             self.requires("libudev/system")
@@ -61,7 +61,7 @@ class HidAPIConan(ConanFile):
         self.cpp_info.set_property("cmake_file_name", "hidapi")
         self.cpp_info.set_property("pkg_config_name", "hidapi")
 
-        self.settings.os != "Windows":
+        if self.settings.os != "Windows":
             self.cpp_info.components["libusb"].set_property("cmake_target_name", "hidapi::libusb")
             self.cpp_info.components["libusb"].set_property("pkg_config_name", "hidapi-lisbusb")
             self.cpp_info.components["libusb"].libs = ["hidapi-libusb"]

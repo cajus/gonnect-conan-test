@@ -22,6 +22,9 @@ class QCA(ConanFile):
     def export_sources(self):
         export_conandata_patches(self)
 
+    def requirements(self):
+        self.requires("qt/6.9.3")
+
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
 
@@ -36,9 +39,9 @@ class QCA(ConanFile):
         deps = CMakeDeps(self)
         deps.generate()
         tc = CMakeToolchain(self)
-        tc.variables['Qt6_DIR'] = "c:/Qt/Qt-6.9.2/lib/cmake/Qt6"
         tc.variables['BUILD_WITH_QT6'] = True
         tc.generate()
+
     def build(self):
         apply_conandata_patches(self)
         cmake = CMake(self)

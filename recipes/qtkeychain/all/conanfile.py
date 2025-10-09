@@ -30,17 +30,16 @@ class QtKeychain(ConanFile):
         if self.settings.os == "Windows":
             del self.options.fPIC
 
+    def requirements(self):
+        self.requires("qt/6.9.3")
+
     def layout(self):
         cmake_layout(self)
 
     def generate(self):
-        if not os.environ.get('CONAN_QT_DIR'):
-            raise ConanException('Environment variable CONAN_QT_DIR must be set')
-
         deps = CMakeDeps(self)
         deps.generate()
         tc = CMakeToolchain(self)
-        tc.variables['Qt6_DIR'] = os.environ['CONAN_QT_DIR']
         tc.variables['BUILD_WITH_QT6'] = True
         tc.generate()
 

@@ -23,6 +23,9 @@ class QtWebDAV(ConanFile):
     def export_sources(self):
         export_conandata_patches(self)
 
+    def requirements(self):
+        self.requires("qt/6.9.3")
+
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
         apply_conandata_patches(self)
@@ -35,13 +38,9 @@ class QtWebDAV(ConanFile):
         cmake_layout(self)
 
     def generate(self):
-        if not os.environ.get('CONAN_QT_DIR'):
-            raise ConanException('Environment variable CONAN_QT_DIR must be set')
-
         deps = CMakeDeps(self)
         deps.generate()
         tc = CMakeToolchain(self)
-        tc.variables['Qt6_DIR'] = os.environ['CONAN_QT_DIR']
         tc.variables['BUILD_WITH_QT6'] = True
         tc.generate()
 

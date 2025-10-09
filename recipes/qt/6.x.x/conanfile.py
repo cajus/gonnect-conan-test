@@ -8,7 +8,7 @@ import configparser
 
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
-from conan.tools.files import get, apply_conandata_patches, export_conandata_patches, replace_in_file, copy, rename, rm, unzip
+from conan.tools.files import get, apply_conandata_patches, export_conandata_patches, replace_in_file, copy, rename, rm
 from conan.tools.scm import Version
 from conan.tools.env import Environment, VirtualBuildEnv, VirtualRunEnv
 from conan.tools.cmake import cmake_layout, CMakeDeps
@@ -328,13 +328,11 @@ class QtConan(ConanFile):
     def export_sources(self):
         export_conandata_patches(self)
 
-    def export(self): # TODO: debug, remove me
+    def export(self):
         copy(self, f"qtmodules-{self.version}.conf", self.recipe_folder, self.export_folder)
-        copy(self, f"qt-everywhere-src-{self.version}.tar.xz", self.recipe_folder, self.export_folder)
 
     def source(self):
-        unzip(self, os.path.join(self.recipe_folder, self.conan_data["sources"][self.version]["url"][0]), destination=self.source_folder, strip_root=True)
-#        get(self, **self.conan_data["sources"][self.version], strip_root=True)
+        get(self, **self.conan_data["sources"][self.version], strip_root=True)
 
     def _xplatform(self):
         if self.settings.os == "Emscripten":

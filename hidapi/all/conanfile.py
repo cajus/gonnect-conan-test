@@ -38,7 +38,6 @@ class HidAPIConan(ConanFile):
     def requirements(self):
         if self.settings.os != "Windows":
             self.requires("libusb/1.0.26")
-        if self.settings.os == "Linux":
             self.requires("libudev/system")
 
     def generate(self):
@@ -58,18 +57,17 @@ class HidAPIConan(ConanFile):
         cmake.install()
 
     def package_info(self):
-        self.cpp_info.set_property("cmake_file_name", "hidapi")
-        self.cpp_info.set_property("pkg_config_name", "hidapi")
-
         if self.settings.os != "Windows":
             self.cpp_info.components["libusb"].set_property("cmake_target_name", "hidapi::libusb")
             self.cpp_info.components["libusb"].set_property("pkg_config_name", "hidapi-lisbusb")
             self.cpp_info.components["libusb"].libs = ["hidapi-libusb"]
             self.cpp_info.components["libusb"].requires = ["libusb::libusb"]
 
-        self.cpp_info.components["hidraw"].set_property("cmake_target_name", "hidapi::hidraw")
-        self.cpp_info.components["hidraw"].set_property("pkg_config_name", "hidapi-hidraw")
-        self.cpp_info.components["hidraw"].libs = ["hidapi-hidraw"]
+            self.cpp_info.components["hidraw"].set_property("cmake_target_name", "hidapi::hidraw")
+            self.cpp_info.components["hidraw"].set_property("pkg_config_name", "hidapi-hidraw")
+            self.cpp_info.components["hidraw"].libs = ["hidapi-hidraw"]
 
-        if self.settings.os == "Linux":
-            self.cpp_info.components["hidraw"].requires = ["libudev::libudev"]
+            if self.settings.os == "Linux":
+                self.cpp_info.components["hidraw"].requires = ["libudev::libudev"]
+        else:
+            self.cpp_info.libs = ["hidapi"]

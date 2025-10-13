@@ -205,7 +205,6 @@ class QtConan(ConanFile):
             if m not in self._get_module_tree:
                 delattr(self.options, m)
 
-    def configure(self):
         if self.settings.os != 'Linux':
             self.options.with_glib = False
             self.options.with_fontconfig = False
@@ -235,6 +234,17 @@ class QtConan(ConanFile):
         if self.settings.os != "Linux":
             self.options.with_libalsa = False
 
+        def _enablemodule(mod):
+            if mod != "qtbase":
+                setattr(self.options, mod, True)
+            for req in self._get_module_tree[mod]["depends"]:
+                _enablemodule(req)
+
+        for module in self._get_module_tree:
+            if self.options.get_safe(module):
+                _enablemodule(module)
+
+    def configure(self):
         if self.settings.os == "Android" and self.options.opengl == "desktop":
             raise ConanInvalidConfiguration("OpenGL desktop is not supported on Android. Consider using OpenGL es2")
 
@@ -256,16 +266,6 @@ class QtConan(ConanFile):
         if not self.options.with_doubleconversion and str(self.settings.compiler.libcxx) != "libc++":
             raise ConanInvalidConfiguration('Qt without libc++ needs qt:with_doubleconversion. '
                                             'Either enable qt:with_doubleconversion or switch to libc++')
-
-        def _enablemodule(mod):
-            if mod != "qtbase":
-                setattr(self.options, mod, True)
-            for req in self._get_module_tree[mod]["depends"]:
-                _enablemodule(req)
-
-        for module in self._get_module_tree:
-            if self.options.get_safe(module):
-                _enablemodule(module)
 
     def requirements(self):
         self.requires("zlib/1.3.1")

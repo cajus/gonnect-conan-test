@@ -13,17 +13,20 @@ class QCA(ConanFile):
     options = {
         "shared": [True, False],
         "fPIC": [True, False],
+        "with_conan_qt": [True, False],
     }
     default_options = {
         "shared": False,
         "fPIC": True,
+        "with_conan_qt": False,
     }
 
     def export_sources(self):
         export_conandata_patches(self)
 
     def requirements(self):
-        self.requires("qt/6.9.3")
+        if self.options.with_conan_qt:
+            self.requires("qt/6.9.3")
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)

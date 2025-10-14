@@ -14,10 +14,12 @@ class QtKeychain(ConanFile):
     options = {
         "shared": [True, False],
         "fPIC": [True, False],
+        "with_conan_qt": [True, False],
     }
     default_options = {
         "shared": False,
         "fPIC": True,
+        "with_conan_qt": False,
     }
 
     def export_sources(self):
@@ -31,7 +33,8 @@ class QtKeychain(ConanFile):
             del self.options.fPIC
 
     def requirements(self):
-        self.requires("qt/6.9.3")
+        if self.options.with_conan_qt:
+            self.requires("qt/6.9.3")
 
     def layout(self):
         cmake_layout(self)
@@ -54,4 +57,7 @@ class QtKeychain(ConanFile):
         cmake.install()
 
     def package_info(self):
+        self.cpp_info.set_property("cmake_file_name", "Qt6Keychain")
+        self.cpp_info.set_property("cmake_target_name", "qt6keychain")
+        self.cpp_info.set_property("cmake_find_mode", "both")
         self.cpp_info.libs = ["qt6keychain"]

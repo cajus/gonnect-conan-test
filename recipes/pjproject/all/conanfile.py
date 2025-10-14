@@ -34,6 +34,7 @@ class PjSIPConan(ConanFile):
         "with_ext_sound": [True, False],
         "with_video": [True, False],
         "with_floatingpoint": [True, False],
+        "endianness": ["big", "little"],
     }
     default_options = {
         "shared": False,
@@ -43,6 +44,7 @@ class PjSIPConan(ConanFile):
         "with_ext_sound": True,
         "with_video": False,
         "with_floatingpoint": True,
+        "endianness": "little",
     }
 
     implements = ["auto_shared_fpic"]
@@ -179,4 +181,10 @@ class PjSIPConan(ConanFile):
     def package_info(self):
         self.cpp_info.set_property("cmake_file_name", "pjproject")
         self.cpp_info.set_property("pkg_config_name", "libpjproject")
+
+        if self.options.get_safe("endianness") == "big":
+            self.cpp_info.cxxflags = ['-DPJ_AUTOCONF=1', '-DPJ_IS_BIG_ENDIAN=1', '-DPJ_IS_LITTLE_ENDIAN=0', '-DPJMEDIA_HAS_RTCP_XR=1', '-DPJMEDIA_STREAM_ENABLE_XR=1']
+        else:
+            self.cpp_info.cxxflags = ['-DPJ_AUTOCONF=1', '-DPJ_IS_BIG_ENDIAN=0', '-DPJ_IS_LITTLE_ENDIAN=1', '-DPJMEDIA_HAS_RTCP_XR=1', '-DPJMEDIA_STREAM_ENABLE_XR=1']
+
         self.cpp_info.libs = collect_libs(self)

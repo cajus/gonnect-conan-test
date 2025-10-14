@@ -5,7 +5,6 @@
 ```sh
 git submodule update --init
 ./export
-cp conanfile.txt gonnect
 cd gonnect
 conan install . --output-folder=build --build=missing
 cd build
